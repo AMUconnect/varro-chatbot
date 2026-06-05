@@ -7,8 +7,9 @@
   style.textContent = `
     #varro-chat-bubble{position:fixed;bottom:24px;right:24px;width:60px;height:60px;border-radius:50%;background:#b08968;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.25);z-index:999999;font-size:28px;transition:transform .2s}
     #varro-chat-bubble:hover{transform:scale(1.08)}
-    #varro-chat-window{position:fixed;bottom:100px;right:24px;width:360px;height:520px;max-width:calc(100vw - 48px);background:#1a1a1a;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,.4);display:none;flex-direction:column;z-index:999999;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,sans-serif;border:1px solid #333}
+    #varro-chat-window{position:fixed;bottom:100px;right:24px;width:360px;height:520px;max-width:calc(100vw - 48px);background:#1a1a1a;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,.4);display:none;flex-direction:column;z-index:999999;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,sans-serif;border:1px solid #333;opacity:0;transform:translateY(20px);transition:opacity .35s ease,transform .35s ease}
     #varro-chat-window.open{display:flex}
+    #varro-chat-window.visible{opacity:1;transform:translateY(0)}
     #varro-chat-header{background:#0f0f0f;color:#f5f0e6;padding:16px 20px;font-size:16px;font-weight:600;border-bottom:1px solid #2a2a2a}
     #varro-chat-header span{color:#b08968}
     #varro-chat-messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px}
@@ -53,10 +54,11 @@
   }
 
   bubble.addEventListener("click", function () {
-    win.classList.toggle("open");
-    if (win.classList.contains("open") && !varroWelcomeShown) {
-      addMsg("bot", "Welkom bij Varro! Ik help je graag met vragen over onze openingstijden, menu, reserveringen of locatie. Waar kan ik mee helpen?");
-      varroWelcomeShown = true;
+    if (win.classList.contains("open")) {
+      win.classList.remove("visible");
+      setTimeout(function () { win.classList.remove("open"); }, 350);
+    } else {
+      varroOpenSmooth();
     }
   });
 
@@ -100,13 +102,23 @@
   });
 
   // Auto-open the chat shortly after the page loads
-  setTimeout(function () {
-    if (!win.classList.contains("open")) {
-      win.classList.add("open");
-      if (!varroWelcomeShown) {
-        addMsg("bot", "Welkom bij Varro! 👋 Ik help je graag met vragen over openingstijden, ons menu, reserveringen of de locatie. Waar kan ik mee helpen?");
-        varroWelcomeShown = true;
-      }
+  // Open smoothly the first time the user scrolls
+  let varroOpenedOnScroll = false;
+  function varroOpenSmooth() {
+    win.classList.add("open");
+    // tiny delay so the slide animation runs
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () { win.classList.add("visible"); });
+    });
+    if (!varroWelcomeShown) {
+      addMsg("bot", "Welkom bij Varro! 👋 Ik help je graag met vragen over openingstijden, ons menu, reserveringen of de locatie. Waar kan ik mee helpen?");
+      varroWelcomeShown = true;
     }
-  }, 2500);
-})();
+  }
+
+  window.addEventListener("scroll", function () {
+    if (!varroOpenedOnScroll && window.scrollY > 300) {
+      varroOpenedOnScroll = true;
+      varroOpenSmooth();
+    }
+  }, { passive: true });
