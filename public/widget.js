@@ -98,4 +98,15 @@
   input.addEventListener("keydown", function (e) {
     if (e.key === "Enter") send();
   });
+
+  // Auto-open the chat shortly after the page loads
+  setTimeout(function () {
+    if (!win.classList.contains("open")) {
+      win.classList.add("open");
+      if (!varroWelcomeShown) {
+        addMsg("bot", "Welkom bij Varro! 👋 Ik help je graag met vragen over openingstijden, ons menu, reserveringen of de locatie. Waar kan ik mee helpen?");
+        varroWelcomeShown = true;
+      }
+    }
+  }, 2500);
 })();
